@@ -14,8 +14,8 @@ const port = process.env.PORT || 3000;
 try {
   await db.authenticate();
   console.log("Connection has been established successfully.");
-  // await User.drop();
   // await Post.drop();
+  // await User.drop();
   // await User.sync()
   // await Post.sync()
 } catch (error) {

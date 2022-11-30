@@ -21,6 +21,9 @@ const User = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    ktp: {
+      type: DataTypes.TEXT,
+    },
   },
   {
     freezeTableName: true,

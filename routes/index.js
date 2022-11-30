@@ -7,5 +7,5 @@ const router = Router();
 router.post("/signup", authController.signup);
 router.post("/signin", authController.signin);
 router.get("/user", verifyToken, authController.getUsers);
-router.post("/image", userController.image )
+router.put("/image/:id", userController.image )
 export default router;
