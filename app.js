@@ -15,7 +15,7 @@ try {
   console.log("Connection has been established successfully.");
   // await User.drop();
   // await Post.drop();
-//   await User.sync()
+  // await User.sync()
   // await Post.sync()
 } catch (error) {
   console.error("Unable to connect to the database:", error);
