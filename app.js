@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import fileUpload from "express-fileupload"
 dotenv.config();
 import db from "./configs/dbconfig.js";
 import authRoutes from "./routes/index.js";
@@ -24,6 +25,7 @@ try {
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(fileUpload())
 
 app.get("/", (req, res) => {
   res.send("welcome");
