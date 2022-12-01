@@ -14,7 +14,7 @@ export const validateRegisterEmail = body(
     }).then(user => {
       if (user) {
         return Promise.reject(
-          "E-Mail already exists, please enter a other e-mail!"
+          "E-Mail already exists, please enter other e-mail!"
         );
       }
     });
@@ -38,5 +38,7 @@ export const validatePassword = body(
 
 export const validatePhoneNumber = body(
   "phoneNumber",
-  "Please enter a number only for phone number"
-).isNumeric();
+  "Please enter a number for phone number and should containt 11 - 13 digit"
+)
+  .isNumeric()
+  .isLength({ min: 11, max: 13 });

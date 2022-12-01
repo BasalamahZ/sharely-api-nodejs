@@ -20,6 +20,6 @@ router.post(
   authController.signin
 );
 router.get("/user", verifyToken, authController.getUsers);
-router.put("/image/:id", verifyToken, authController.image);
+router.put("/image/:id", authController.image);
 
 export default router;

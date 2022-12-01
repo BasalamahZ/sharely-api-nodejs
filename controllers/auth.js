@@ -3,6 +3,7 @@ import Jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { validationResult } from "express-validator";
 import AWS from "aws-sdk";
+import path from "path";
 
 export const getUsers = async (req, res) => {
   try {
@@ -20,9 +21,12 @@ export const getUsers = async (req, res) => {
 export const signup = async (req, res) => {
   try {
     const { fullName, email, password, phoneNumber } = req.body;
-    const errors = validationResult(req)
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(409).send(errors.array()[0].msg);
+      return res.status(400).send({
+        success: false,
+        message: errors.array()[0].msg,
+      });
     }
     const hash = await bcrypt.hash(password, 10);
     if (hash) {
@@ -50,7 +54,10 @@ export const signin = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(404).send(errors.array()[0].msg);
+      return res.status(400).send({
+        success: false,
+        message: errors.array()[0].msg,
+      });
     }
     const user = await User.findOne({
       where: {
@@ -60,7 +67,7 @@ export const signin = async (req, res) => {
     if (!user) {
       return res.status(400).send({
         success: false,
-        message: "Invalid e-Mail or password!"
+        message: "Invalid e-Mail or password!",
       });
     }
 
@@ -84,10 +91,8 @@ export const signin = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "success",
-      data: {
-        id: user._id,
-        accessToken: token,
-      },
+      data: user,
+      accessToken: token,
     });
   } catch (error) {
     return res.status(500).send({
@@ -109,7 +114,14 @@ export const image = async (req, res) => {
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: req.files.data.name,
     Body: fileContent,
+    ContentType: "image/jpeg",
   };
+  const extensionName = path.extname(params.Key); // fetch the file extension
+  const allowedExtension = [".png", ".jpg", ".jpeg"];
+
+  if (!allowedExtension.includes(extensionName)) {
+    return res.status(422).send("Invalid Image");
+  }
   const userId = req.params.id;
   s3.upload(params, (err, data) => {
     if (err) {
