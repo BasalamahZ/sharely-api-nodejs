@@ -120,7 +120,10 @@ export const image = async (req, res) => {
   const allowedExtension = [".png", ".jpg", ".jpeg"];
 
   if (!allowedExtension.includes(extensionName)) {
-    return res.status(422).send("Invalid Image");
+    return res.status(422).send({
+      success: false,
+      message: "Invalid Image",
+    });
   }
   const userId = req.params.id;
   s3.upload(params, (err, data) => {
