@@ -122,7 +122,7 @@ export const image = async (req, res) => {
   if (!allowedExtension.includes(extensionName)) {
     return res.status(422).send({
       success: false,
-      message: "Invalid Image",
+      message: "Please enter a valid image.",
     });
   }
   const userId = req.params.id;
