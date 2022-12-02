@@ -1,14 +1,15 @@
 import { DataTypes } from "sequelize";
 import db from "../configs/dbconfig.js";
+import Event from "./Event.js";
 
-const User = db.define(
-  "users",
+const Helper = db.define(
+  "helpers",
   {
-    fullName: {
+    title: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    email: {
+    message: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -16,19 +17,9 @@ const User = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    password: {
+    place: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
-    ktp: {
-      type: DataTypes.TEXT,
-    },
-    point: {
-      type: DataTypes.INTEGER,
-    },
-    Count: {
-      type: DataTypes.INTEGER,
-    }
   },
   {
     timestamps: true,
@@ -38,4 +29,4 @@ const User = db.define(
   }
 );
 
-export default User;
+export default Helper;

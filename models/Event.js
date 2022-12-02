@@ -1,5 +1,7 @@
 import { DataTypes } from "sequelize";
 import db from "../configs/dbconfig.js";
+import Helper from "./Helper.js";
+import User from "./User.js";
 
 const Event = db.define(
   "events",
@@ -15,7 +17,6 @@ const Event = db.define(
     phoneNumber: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     latitude: {
       type: DataTypes.STRING,
@@ -29,9 +30,6 @@ const Event = db.define(
     status: {
       type: DataTypes.STRING,
     },
-    helpedBy: {
-      type: DataTypes.STRING,
-    },
     review: {
       type: DataTypes.STRING,
     },
@@ -43,5 +41,13 @@ const Event = db.define(
     freezeTableName: true,
   }
 );
+Event.hasMany(Helper);
+Helper.belongsTo(User);
+// User.hasMany(Event);
+// Event.hasMany(Helper);
+Event.belongsTo(User);
+// Helper.belongsTo(Event)
+// Helper.hasOne(User);
+// User.belongsTo(Helper)
 
 export default Event;

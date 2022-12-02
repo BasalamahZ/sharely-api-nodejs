@@ -7,8 +7,10 @@ dotenv.config();
 import db from "./configs/dbconfig.js";
 import authRoutes from "./routes/authRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
+import helperRoutes from "./routes/helperRoutes.js";
 import User from "./models/User.js";
 import Event from "./models/Event.js";
+import Helper from "./models/Helper.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,10 +18,12 @@ const port = process.env.PORT || 3000;
 try {
   await db.authenticate();
   console.log("Connection has been established successfully.");
-  // await User.drop();
-  // await User.sync()
+  // await Helper.drop();
   // await Event.drop();
-  // await Event.sync()
+  // await User.drop();
+  // await User.sync();
+  // await Event.sync();
+  // await Helper.sync();
 } catch (error) {
   console.error("Unable to connect to the database:", error);
 }
@@ -35,6 +39,7 @@ app.get("/", (req, res) => {
 
 app.use(authRoutes);
 app.use(eventRoutes);
+app.use(helperRoutes);
 
 app.listen(port, () => {
   console.log(`Server Running at http://localhost:${port}`);
