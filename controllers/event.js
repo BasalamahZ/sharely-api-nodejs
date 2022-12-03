@@ -97,7 +97,11 @@ export const finishedEvent = async (req, res) => {
       },
     }
   );
-  const users = await 
+  // const users = await User.update({
+  //   where:{
+  //     id: ev
+  //   }
+  // })
   res.status(200).send({
     success: true,
     message: "success",

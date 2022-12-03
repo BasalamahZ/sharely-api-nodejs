@@ -26,9 +26,6 @@ const User = db.define(
     point: {
       type: DataTypes.INTEGER,
     },
-    Count: {
-      type: DataTypes.INTEGER,
-    }
   },
   {
     timestamps: true,
