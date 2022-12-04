@@ -53,9 +53,14 @@ export const createEvent = async (req, res) => {
 
 export const getEvent = async (req, res) => {
   try {
+    const loginUser = req.user;
+    console.log(loginUser);
     const events = await Event.findAll({
       where: {
-        status: ["waiting for help", "ongoing"],
+        [Op.and]: [
+          { status: ["waiting for help", "ongoing"] },
+          { [Op.not]: { userId: req.user.id } },
+        ],
       },
       include: [
         {
@@ -97,7 +102,7 @@ export const getEvent = async (req, res) => {
 export const getEventById = async (req, res) => {
   try {
     let events;
-    const userId = req.params.id;
+    const userId = req.params.userId;
     const status = req.query.status;
     if (status) {
       events = await Event.findAll({
@@ -167,7 +172,7 @@ export const getEventById = async (req, res) => {
 };
 
 export const finishedEvent = async (req, res) => {
-  const eventsId = req.params.id;
+  const eventsId = req.params.eventId;
   const helper = req.body.helper;
   const events = await Event.update(
     {
@@ -203,7 +208,7 @@ export const finishedEvent = async (req, res) => {
 };
 
 export const cancelEvent = async (req, res) => {
-  const eventsId = req.params.id;
+  const eventsId = req.params.eventId;
   const events = await Event.update(
     {
       status: "canceled",

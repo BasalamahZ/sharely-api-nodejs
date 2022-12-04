@@ -3,13 +3,24 @@ import Event from "../models/Event.js";
 
 export const createHelper = async (req, res) => {
   try {
-    const { title, message, phoneNumber, eventId, userId, place } = req.body;
+    const {
+      title,
+      message,
+      phoneNumber,
+      eventId,
+      longitude,
+      latitude,
+      userId,
+      place,
+    } = req.body;
     const helpers = await Helper.create({
       userId: userId,
       title: title,
       message: message,
       phoneNumber: phoneNumber,
       eventId: eventId,
+      longitude: longitude,
+      latitude: latitude,
       place: place,
     });
     const events = await Event.update(

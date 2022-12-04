@@ -17,6 +17,12 @@ const Helper = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    latitude: {
+      type: DataTypes.STRING,
+    },
+    longitude: {
+      type: DataTypes.STRING,
+    },
     place: {
       type: DataTypes.STRING,
     },
