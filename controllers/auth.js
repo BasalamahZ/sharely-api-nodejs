@@ -149,3 +149,17 @@ export const image = async (req, res) => {
     });
   });
 };
+
+
+export const updateUser = async(req, res) => {
+  try {
+    const users = User.update({
+      
+    })
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error
+    })
+  }
+}

@@ -1,13 +1,18 @@
-import * as eventController from "../controllers/event.js"
+import * as eventController from "../controllers/event.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { Router } from "express"
+import { Router } from "express";
 
 const router = Router();
 
-router.post("/event", eventController.createEvent)
-router.get("/event", verifyToken, eventController.getEvent)
-router.get("/event/:userId", eventController.getEventById)
-router.put("/event/:eventId", eventController.finishedEvent)
-router.put("/event/cancel/:eventId", eventController.cancelEvent)
+router.post("/event", verifyToken, eventController.createEvent);
+router.get("/event", verifyToken, eventController.getEvent);
+router.get("/event/:userId", verifyToken, eventController.getEventById);
+router.get(
+  "/event/helper/:helperId",
+  verifyToken,
+  eventController.getEventByIdHelper
+);
+router.put("/event/:eventId", verifyToken, eventController.finishedEvent);
+router.put("/event/cancel/:eventId", verifyToken, eventController.cancelEvent);
 
 export default router;

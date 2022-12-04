@@ -1,6 +1,5 @@
 import Event from "../models/Event.js";
 import Helper from "../models/Helper.js";
-import db from "../configs/dbconfig.js";
 import User from "../models/User.js";
 import { Sequelize, Op } from "sequelize";
 
@@ -104,10 +103,13 @@ export const getEventById = async (req, res) => {
     let events;
     const userId = req.params.userId;
     const status = req.query.status;
-    if (status) {
+    if (status == "canceled") {
       events = await Event.findAll({
         where: {
-          [Op.and]: [{ userId: userId }, { status: status }],
+          [Op.and]: [
+            { userId: userId },
+            { status: "canceled" }
+          ],
         },
         include: [
           {
@@ -129,10 +131,35 @@ export const getEventById = async (req, res) => {
         ],
         order: [["createdAt", "DESC"]],
       });
-    } else {
+    } else if (status == "finished") {
       events = await Event.findAll({
         where: {
-          userId: userId,
+          [Op.and]: [{ userId: userId }, { status: "finished" }],
+        },
+        include: [
+          {
+            model: User,
+            attributes: [
+              "id",
+              "fullName",
+              "email",
+              "phoneNumber",
+              "point",
+              "count",
+            ],
+          },
+          {
+            model: Helper,
+            attributes: ["userId", "title", "message", "phoneNumber", "place"],
+            include: "user",
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+    } else if (status == "ongoing") {
+      events = await Event.findAll({
+        where: {
+          [Op.and]: [{ userId: userId }, { status: ["waiting for help" , "ongoing"]}],
         },
         include: [
           {
@@ -202,9 +229,47 @@ export const finishedEvent = async (req, res) => {
   res.status(200).send({
     success: true,
     message: "success",
-    data: events,
-    data1: users,
   });
+};
+
+export const getEventByIdHelper = async (req, res) => {
+  try {
+    // const helperId = req.user.id;
+    const events = await Event.findAll({
+      where: {
+        status: "waiting for help",
+      },
+      include: [
+        {
+          model: User,
+          attributes: [
+            "id",
+            "fullName",
+            "email",
+            "phoneNumber",
+            "point",
+            "count",
+          ],
+        },
+        {
+          model: Helper,
+          attributes: ["userId", "title", "message", "phoneNumber", "place"],
+          where: {
+              userId: req.user.id,
+          },
+          include: "user",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    res.status(200).json({
+      success: true,
+      message: "success",
+      data: events,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const cancelEvent = async (req, res) => {
@@ -222,6 +287,5 @@ export const cancelEvent = async (req, res) => {
   res.status(200).send({
     success: true,
     message: "success",
-    data: events,
   });
 };
