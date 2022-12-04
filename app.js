@@ -21,9 +21,9 @@ try {
   // await Helper.drop();
   // await Event.drop();
   // await User.drop();
-  // await User.sync();
-  // await Event.sync();
-  // await Helper.sync();
+    // await User.sync();
+    // await Event.sync();
+    // await Helper.sync();
 } catch (error) {
   console.error("Unable to connect to the database:", error);
 }

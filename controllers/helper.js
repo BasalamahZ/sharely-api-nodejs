@@ -26,7 +26,6 @@ export const createHelper = async (req, res) => {
       success: true,
       message: "Create Helper Successfully",
       data: helpers,
-      data1: events
     });
   } catch (error) {
     return res.status(500).send({

@@ -35,6 +35,8 @@ export const signup = async (req, res) => {
         email: email,
         password: hash,
         phoneNumber: phoneNumber,
+        point: 0,
+        count: 0
       });
       return res.status(200).send({
         status: true,
