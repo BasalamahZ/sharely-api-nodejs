@@ -2,11 +2,23 @@ import Event from "../models/Event.js";
 import Helper from "../models/Helper.js";
 import User from "../models/User.js";
 import { Sequelize, Op } from "sequelize";
+import FCM from "fcm-node";
 
 export const createEvent = async (req, res) => {
   try {
     const { title, detail, phoneNumber, latitude, longitude, place, userId } =
       req.body;
+    let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
+    let message = {
+      to: "/topics/sharely",
+      notification: {
+        title: title,
+        body: detail,
+        sound: 'default',
+        "click_action": "FCM_PLUGIN_ACTIVITY",
+        "icon": "fcm_push_icon"
+      },
+    };
     const avalaible = await Event.findOne({
       where: {
         [Op.and]: [
@@ -37,11 +49,18 @@ export const createEvent = async (req, res) => {
       userId: userId,
       status: "ongoing",
     });
-    return res.status(200).send({
-      status: true,
-      message: "Successfully Created!",
-      data: events,
-    });
+    fcm.send(message, (err, response) => {
+      if(err){
+        next(err)
+      } else {
+        return res.status(200).send({
+          status: true,
+          message: "Successfully Created!",
+          data: events,
+          response :response
+        });
+      }
+    })
   } catch (error) {
     return res.status(500).send({
       success: false,
@@ -106,10 +125,7 @@ export const getEventById = async (req, res) => {
     if (status == "canceled") {
       events = await Event.findAll({
         where: {
-          [Op.and]: [
-            { userId: userId },
-            { status: "canceled" }
-          ],
+          [Op.and]: [{ userId: userId }, { status: "canceled" }],
         },
         include: [
           {
@@ -159,7 +175,10 @@ export const getEventById = async (req, res) => {
     } else if (status == "ongoing") {
       events = await Event.findAll({
         where: {
-          [Op.and]: [{ userId: userId }, { status: ["waiting for help" , "ongoing"]}],
+          [Op.and]: [
+            { userId: userId },
+            { status: ["waiting for help", "ongoing"] },
+          ],
         },
         include: [
           {
@@ -255,7 +274,7 @@ export const getEventByIdHelper = async (req, res) => {
           model: Helper,
           attributes: ["userId", "title", "message", "phoneNumber", "place"],
           where: {
-              userId: req.user.id,
+            userId: req.user.id,
           },
           include: "user",
         },

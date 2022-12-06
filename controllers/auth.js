@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { validationResult } from "express-validator";
 import AWS from "aws-sdk";
 import path from "path";
+import { AWSConfig } from "../configs/awsConfig.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -36,7 +37,7 @@ export const signup = async (req, res) => {
         password: hash,
         phoneNumber: phoneNumber,
         point: 0,
-        count: 0
+        count: 0,
       });
       return res.status(200).send({
         status: true,
@@ -105,20 +106,8 @@ export const signin = async (req, res) => {
 };
 
 export const image = async (req, res) => {
-  AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_KEY,
-    region: process.env.AWS_BUCKET_REGION,
-  });
-  const s3 = new AWS.S3();
-  const fileContent = Buffer.from(req.files.data.data, "binary");
-  const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
-    Key: req.files.data.name,
-    Body: fileContent,
-    ContentType: "image/jpeg",
-  };
-  const extensionName = path.extname(params.Key); // fetch the file extension
+  const data = await AWSConfig(req.files);
+  const extensionName = path.extname(data.Key); // fetch the file extension
   const allowedExtension = [".png", ".jpg", ".jpeg"];
 
   if (!allowedExtension.includes(extensionName)) {
@@ -128,12 +117,50 @@ export const image = async (req, res) => {
     });
   }
   const userId = req.params.id;
-  s3.upload(params, (err, data) => {
-    if (err) {
-      throw err;
+  const newData = User.update(
+    {
+      ktp: data.Location,
+    },
+    {
+      where: {
+        id: userId,
+      },
     }
-    const newData = User.update(
+  );
+  res.status(200).send({
+    success: true,
+    message: "File successfully uploaded",
+    data: data,
+  });
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const data = await AWSConfig(req.files);
+    const extensionName = path.extname(data.Key); // fetch the file extension
+    const allowedExtension = [".png", ".jpg", ".jpeg"];
+
+    if (!allowedExtension.includes(extensionName)) {
+      return res.status(422).send({
+        success: false,
+        message: "Please enter a valid image.",
+      });
+    }
+    const userId = req.params.userId;
+    const { fullName, password, phoneNumber } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).send({
+        success: false,
+        message: errors.array()[0].msg,
+      });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const users = await User.update(
       {
+        fullName: fullName,
+        password: hash,
+        phoneNumber: phoneNumber,
         ktp: data.Location,
       },
       {
@@ -142,24 +169,15 @@ export const image = async (req, res) => {
         },
       }
     );
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
-      message: "File successfully uploaded",
+      message: "success",
       data: data,
     });
-  });
-};
-
-
-export const updateUser = async(req, res) => {
-  try {
-    const users = User.update({
-      
-    })
   } catch (error) {
     res.status(500).send({
       success: false,
-      message: error
-    })
+      message: error,
+    });
   }
-}
+};
