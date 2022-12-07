@@ -3,6 +3,7 @@ import Helper from "../models/Helper.js";
 import User from "../models/User.js";
 import { Sequelize, Op } from "sequelize";
 import FCM from "fcm-node";
+import fetch from "node-fetch";
 
 export const createEvent = async (req, res) => {
   try {
@@ -14,9 +15,9 @@ export const createEvent = async (req, res) => {
       notification: {
         title: title,
         body: detail,
-        sound: 'default',
-        "click_action": "FCM_PLUGIN_ACTIVITY",
-        "icon": "fcm_push_icon"
+        sound: "default",
+        click_action: "FCM_PLUGIN_ACTIVITY",
+        icon: "fcm_push_icon",
       },
     };
     const avalaible = await Event.findOne({
@@ -50,23 +51,58 @@ export const createEvent = async (req, res) => {
       status: "ongoing",
     });
     fcm.send(message, (err, response) => {
-      if(err){
-        next(err)
+      if (err) {
+        next(err);
       } else {
         return res.status(200).send({
           status: true,
           message: "Successfully Created!",
           data: events,
-          response :response
+          response: response,
         });
       }
-    })
+    });
   } catch (error) {
     return res.status(500).send({
       success: false,
       message: error,
     });
   }
+};
+
+export const subsFirebase = async (req, res) => {
+  const fcmToken = req.body.fcmToken;
+  const userId = req.params.userId;
+  const users = User.update(
+    {
+      fcmToken: fcmToken,
+    },
+    {
+      where: {
+        id: userId,
+      },
+    }
+  );
+  fetch("https://iid.googleapis.com/iid/v1/" + fcmToken + "/rel/topics/sharely", {
+    method: "PUT",
+    headers: {
+      Authorization: "key=" + process.env.FIREBASE_SERVER_KEY,
+    },
+  })
+    .then(() => {
+      console.log(req.body);
+      res.status(200).send({
+        success: true,
+        message: "subscribed",
+      });
+    })
+    .catch(error => {
+      res.status(500).send({
+        success: false,
+        message: "something went wrong",
+      });
+      console.log(error);
+    });
 };
 
 export const getEvent = async (req, res) => {
@@ -308,3 +344,36 @@ export const cancelEvent = async (req, res) => {
     message: "success",
   });
 };
+
+// dboqTRkA7m7waQtYtb7DAV:APA91bFdMM5NyN-bTUEL0H4V_B8b4baz1YoK_B1x3s9ag0iJkRXVXWOEWSIeMvs3NNSP6gQuJyKOnqqKKlx6avITcumLfs8Tr7q7KftcaPqrZhy4xp8zDSHWzWG6klWPKd1Y1OF4iEgc
+
+// export const subsFirebase = async (req, res) => {
+//   const notification = {
+//     title: "title of notif",
+//     text: "subtitle",
+//   };
+
+//   const fcm_tokens = [
+//     "dboqTRkA7m7waQtYtb7DAV:APA91bFdMM5NyN-bTUEL0H4V_B8b4baz1YoK_B1x3s9ag0iJkRXVXWOEWSIeMvs3NNSP6gQuJyKOnqqKKlx6avITcumLfs8Tr7q7KftcaPqrZhy4xp8zDSHWzWG6klWPKd1Y1OF4iEgc",
+//   ];
+
+//   let notif_body = {
+//     notification: notification,
+//     registration_ids: fcm_tokens,
+//   };
+//   fetch("https://fcm.googleapis.com/fcm/send", {
+//     method: "POST",
+//     headers: {
+//       Authorization: "key=" + process.env.FIREBASE_SERVER_KEY,
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify(notif_body),
+//   })
+//     .then(() => {
+//       res.status(200).send("notification send successfully");
+//     })
+//     .catch((error) => {
+//       res.status(400).send("something went wrong")
+//       console.log(error);
+//     });
+// };

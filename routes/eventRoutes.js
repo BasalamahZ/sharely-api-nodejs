@@ -5,6 +5,7 @@ import { Router } from "express";
 const router = Router();
 
 router.post("/event", verifyToken, eventController.createEvent);
+router.put("/subs/:userId", verifyToken, eventController.subsFirebase);
 router.get("/event", verifyToken, eventController.getEvent);
 router.get("/event/:userId", verifyToken, eventController.getEventById);
 router.get(

@@ -136,43 +136,27 @@ export const image = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const data = await AWSConfig(req.files);
-    const extensionName = path.extname(data.Key); // fetch the file extension
-    const allowedExtension = [".png", ".jpg", ".jpeg"];
-
-    if (!allowedExtension.includes(extensionName)) {
-      return res.status(422).send({
-        success: false,
-        message: "Please enter a valid image.",
-      });
-    }
     const userId = req.params.userId;
     const { fullName, password, phoneNumber } = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).send({
-        success: false,
-        message: errors.array()[0].msg,
-      });
-    }
     const hash = await bcrypt.hash(password, 10);
     const users = await User.update(
       {
         fullName: fullName,
         password: hash,
         phoneNumber: phoneNumber,
-        ktp: data.Location,
       },
       {
         where: {
           id: userId,
         },
+        returning: true,
+        plain: true,
       }
     );
     return res.status(200).send({
       success: true,
       message: "success",
-      data: data,
+      data: users,
     });
   } catch (error) {
     res.status(500).send({

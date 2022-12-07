@@ -21,11 +21,6 @@ router.post(
 );
 router.get("/user", verifyToken, authController.getUsers);
 router.put("/image/:id", authController.image);
-router.put(
-  "/user/:userId",
-  verifyToken,
-  [validatePassword, validatePhoneNumber],
-  authController.updateUser
-);
+router.put("/user/:userId", verifyToken, authController.updateUser);
 
 export default router;

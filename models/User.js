@@ -23,6 +23,9 @@ const User = db.define(
     ktp: {
       type: DataTypes.TEXT,
     },
+    fcmToken: {
+      type: DataTypes.TEXT,
+    },
     point: {
       type: DataTypes.INTEGER,
     },
