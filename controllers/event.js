@@ -10,16 +10,6 @@ export const createEvent = async (req, res) => {
     const { title, detail, phoneNumber, latitude, longitude, place, userId } =
       req.body;
     let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
-    let message = {
-      to: "/topics/sharely",
-      notification: {
-        title: title,
-        body: detail,
-        sound: "default",
-        click_action: "FCM_PLUGIN_ACTIVITY",
-        icon: "fcm_push_icon",
-      },
-    };
     const avalaible = await Event.findOne({
       where: {
         [Op.and]: [
@@ -33,7 +23,16 @@ export const createEvent = async (req, res) => {
         },
       ],
     });
-    console.log(avalaible);
+    let message = {
+      to: "/topics/sharely",
+      notification: {
+        title: "Someone need your help",
+        body: title,
+        sound: "default",
+        click_action: "FCM_PLUGIN_ACTIVITY",
+        icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+      },
+    };
     if (avalaible) {
       return res.status(400).send({
         success: false,
@@ -83,14 +82,16 @@ export const subsFirebase = async (req, res) => {
       },
     }
   );
-  fetch("https://iid.googleapis.com/iid/v1/" + fcmToken + "/rel/topics/sharely", {
-    method: "PUT",
-    headers: {
-      Authorization: "key=" + process.env.FIREBASE_SERVER_KEY,
-    },
-  })
+  fetch(
+    "https://iid.googleapis.com/iid/v1/" + fcmToken + "/rel/topics/sharely",
+    {
+      method: "PUT",
+      headers: {
+        Authorization: "key=" + process.env.FIREBASE_SERVER_KEY,
+      },
+    }
+  )
     .then(() => {
-      console.log(req.body);
       res.status(200).send({
         success: true,
         message: "subscribed",
@@ -108,7 +109,6 @@ export const subsFirebase = async (req, res) => {
 export const getEvent = async (req, res) => {
   try {
     const loginUser = req.user;
-    console.log(loginUser);
     const events = await Event.findAll({
       where: {
         [Op.and]: [
@@ -149,7 +149,10 @@ export const getEvent = async (req, res) => {
       data: events,
     });
   } catch (error) {
-    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: error,
+    });
   }
 };
 
@@ -249,131 +252,138 @@ export const getEventById = async (req, res) => {
       data: events,
     });
   } catch (error) {
-    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: error,
+    });
   }
 };
 
 export const finishedEvent = async (req, res) => {
-  const eventsId = req.params.eventId;
-  const helper = req.body.helper;
-  const events = await Event.update(
-    {
-      helper: helper,
-      review: req.body.review,
-      status: "finished",
-    },
-    {
+  try {
+    const eventsId = req.params.eventId;
+    const helper = req.body.helper;
+    const events = await Event.update(
+      {
+        helper: helper,
+        review: req.body.review,
+        status: "finished",
+      },
+      {
+        where: {
+          id: eventsId,
+        },
+      }
+    );
+
+    const users = await User.update(
+      {
+        point: Sequelize.fn("100 + ", Sequelize.col("point")),
+        count: Sequelize.fn("1 + ", Sequelize.col("count")),
+      },
+
+      {
+        where: {
+          id: helper,
+        },
+      }
+    );
+    const findUser = await Event.findOne({
       where: {
         id: eventsId,
-      },
-    }
-  );
-
-  const users = await User.update(
-    {
-      point: Sequelize.fn("100 + ", Sequelize.col("point")),
-      count: Sequelize.fn("1 + ", Sequelize.col("count")),
-    },
-
-    {
-      where: {
-        id: helper,
-      },
-    }
-  );
-  res.status(200).send({
-    success: true,
-    message: "success",
-  });
-};
-
-export const getEventByIdHelper = async (req, res) => {
-  try {
-    // const helperId = req.user.id;
-    const events = await Event.findAll({
-      where: {
-        status: "waiting for help",
       },
       include: [
         {
           model: User,
-          attributes: [
-            "id",
-            "fullName",
-            "email",
-            "phoneNumber",
-            "point",
-            "count",
-          ],
-        },
-        {
-          model: Helper,
-          attributes: ["userId", "title", "message", "phoneNumber", "place"],
-          where: {
-            userId: req.user.id,
-          },
-          include: "user",
+          attributes: ["fcmToken", "fullName"],
         },
       ],
-      order: [["createdAt", "DESC"]],
     });
-    res.status(200).json({
-      success: true,
-      message: "success",
-      data: events,
+    let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
+    const token = findUser.user.fcmToken;
+    const name = findUser.user.fullName;
+    let messages = {
+      to: token,
+      notification: {
+        title: "Thank you for helping " + name,
+        body: "Congratulations you get 100 points",
+        sound: "default",
+        click_action: "FCM_PLUGIN_ACTIVITY",
+        icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+      },
+    };
+    fcm.send(messages, (err, response) => {
+      if (err) {
+        next(err);
+      } else {
+        return res.status(200).send({
+          status: true,
+          message: "Successfully Created!",
+          response: response,
+        });
+      }
     });
   } catch (error) {
-    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: error,
+    });
   }
 };
 
 export const cancelEvent = async (req, res) => {
-  const eventsId = req.params.eventId;
-  const events = await Event.update(
-    {
-      status: "canceled",
-    },
-    {
+  try {
+    const eventsId = req.params.eventId;
+    const events = await Event.update(
+      {
+        status: "canceled",
+      },
+      {
+        where: {
+          id: eventsId,
+        },
+      }
+    );
+    const findUser = await Event.findOne({
       where: {
         id: eventsId,
       },
-    }
-  );
-  res.status(200).send({
-    success: true,
-    message: "success",
-  });
+      include: [
+        {
+          model: User,
+          attributes: ["fcmToken", "fullName"],
+        },
+      ],
+    });
+    let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
+    const token = findUser.user.fcmToken;
+    const name = findUser.user.fullName;
+    let messages = {
+      to: token,
+      notification: {
+        title: name + " has canceled this event",
+        body: "Thank you for your awareness",
+        sound: "default",
+        click_action: "FCM_PLUGIN_ACTIVITY",
+        icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+      },
+    };
+    fcm.send(messages, (err, response) => {
+      if (err) {
+        next(err);
+      } else {
+        return res.status(200).send({
+          status: true,
+          message: "Successfully Created!",
+          data: findUser,
+          response: response,
+        });
+      }
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: error,
+    });
+  }
 };
-
-// dboqTRkA7m7waQtYtb7DAV:APA91bFdMM5NyN-bTUEL0H4V_B8b4baz1YoK_B1x3s9ag0iJkRXVXWOEWSIeMvs3NNSP6gQuJyKOnqqKKlx6avITcumLfs8Tr7q7KftcaPqrZhy4xp8zDSHWzWG6klWPKd1Y1OF4iEgc
-
-// export const subsFirebase = async (req, res) => {
-//   const notification = {
-//     title: "title of notif",
-//     text: "subtitle",
-//   };
-
-//   const fcm_tokens = [
-//     "dboqTRkA7m7waQtYtb7DAV:APA91bFdMM5NyN-bTUEL0H4V_B8b4baz1YoK_B1x3s9ag0iJkRXVXWOEWSIeMvs3NNSP6gQuJyKOnqqKKlx6avITcumLfs8Tr7q7KftcaPqrZhy4xp8zDSHWzWG6klWPKd1Y1OF4iEgc",
-//   ];
-
-//   let notif_body = {
-//     notification: notification,
-//     registration_ids: fcm_tokens,
-//   };
-//   fetch("https://fcm.googleapis.com/fcm/send", {
-//     method: "POST",
-//     headers: {
-//       Authorization: "key=" + process.env.FIREBASE_SERVER_KEY,
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(notif_body),
-//   })
-//     .then(() => {
-//       res.status(200).send("notification send successfully");
-//     })
-//     .catch((error) => {
-//       res.status(400).send("something went wrong")
-//       console.log(error);
-//     });
-// };

@@ -4,11 +4,16 @@ import bcrypt from "bcryptjs";
 import { validationResult } from "express-validator";
 import AWS from "aws-sdk";
 import path from "path";
-import { AWSConfig } from "../configs/awsConfig.js";
+import { AWSConfig } from "../configs/awsconfig.js";
 
-export const getUsers = async (req, res) => {
+export const getUserById = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const userId = req.params.userId
+    const users = await User.findOne({
+      where: {
+        id: userId
+      }
+    });
     res.status(200).json({
       success: true,
       message: "success",

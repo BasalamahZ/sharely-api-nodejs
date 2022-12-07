@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import db from "../configs/dbconfig.js";
-import Event from "./Event.js";
 
 const Helper = db.define(
   "helpers",

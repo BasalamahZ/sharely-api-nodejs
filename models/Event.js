@@ -43,11 +43,7 @@ const Event = db.define(
 );
 Event.hasMany(Helper);
 Helper.belongsTo(User);
-// User.hasMany(Event);
-// Event.hasMany(Helper);
 Event.belongsTo(User);
-// Helper.belongsTo(Event)
-// Helper.hasOne(User);
-// User.belongsTo(Helper)
+
 
 export default Event;

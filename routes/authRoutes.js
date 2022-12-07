@@ -19,7 +19,7 @@ router.post(
   [validateLoginEmail, validatePassword],
   authController.signin
 );
-router.get("/user", verifyToken, authController.getUsers);
+router.get("/user/:userId", verifyToken, authController.getUserById);
 router.put("/image/:id", authController.image);
 router.put("/user/:userId", verifyToken, authController.updateUser);
 
