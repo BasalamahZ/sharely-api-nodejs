@@ -8,11 +8,11 @@ import { AWSConfig } from "../configs/awsconfig.js";
 
 export const getUserById = async (req, res) => {
   try {
-    const userId = req.params.userId
+    const userId = req.params.userId;
     const users = await User.findOne({
       where: {
-        id: userId
-      }
+        id: userId,
+      },
     });
     res.status(200).json({
       success: true,
