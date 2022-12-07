@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { validationResult } from "express-validator";
 import AWS from "aws-sdk";
 import path from "path";
-import { AWSConfig } from "../configs/awsconfig.js";
+import { AWSConfig } from "../configs/awsConfig.js";
 
 export const getUserById = async (req, res) => {
   try {
