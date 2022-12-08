@@ -143,16 +143,13 @@ export const getEvent = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
     });
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "success",
       data: events,
     });
   } catch (error) {
-    return res.status(500).send({
-      success: false,
-      message: error,
-    });
+    console.log(error);
   }
 };
 
@@ -246,144 +243,126 @@ export const getEventById = async (req, res) => {
         message: "Not Found",
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "success",
       data: events,
     });
   } catch (error) {
-    return res.status(500).send({
-      success: false,
-      message: error,
-    });
+    console.log(error);
   }
 };
 
 export const finishedEvent = async (req, res) => {
-  try {
-    const eventsId = req.params.eventId;
-    const helper = req.body.helper;
-    const events = await Event.update(
-      {
-        helper: helper,
-        review: req.body.review,
-        status: "finished",
-      },
-      {
-        where: {
-          id: eventsId,
-        },
-      }
-    );
-
-    const users = await User.update(
-      {
-        point: Sequelize.fn("100 + ", Sequelize.col("point")),
-        count: Sequelize.fn("1 + ", Sequelize.col("count")),
-      },
-
-      {
-        where: {
-          id: helper,
-        },
-      }
-    );
-    const findUser = await Event.findOne({
+  const eventsId = req.params.eventId;
+  const helper = req.body.helper;
+  const events = await Event.update(
+    {
+      helper: helper,
+      review: req.body.review,
+      status: "finished",
+    },
+    {
       where: {
         id: eventsId,
       },
-      include: [
-        {
-          model: User,
-          attributes: ["fcmToken", "fullName"],
-        },
-      ],
-    });
-    let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
-    const token = findUser.user.fcmToken;
-    const name = findUser.user.fullName;
-    let messages = {
-      to: token,
-      notification: {
-        title: "Thank you for helping " + name,
-        body: "Congratulations you get 100 points",
-        sound: "default",
-        click_action: "FCM_PLUGIN_ACTIVITY",
-        icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+    }
+  );
+
+  const users = await User.update(
+    {
+      point: Sequelize.fn("100 + ", Sequelize.col("point")),
+      count: Sequelize.fn("1 + ", Sequelize.col("count")),
+    },
+
+    {
+      where: {
+        id: helper,
       },
-    };
-    fcm.send(messages, (err, response) => {
-      if (err) {
-        next(err);
-      } else {
-        return res.status(200).send({
-          status: true,
-          message: "Successfully Created!",
-          response: response,
-        });
-      }
-    });
-  } catch (error) {
-    return res.status(500).send({
-      success: false,
-      message: error,
-    });
-  }
+    }
+  );
+  const findUser = await Event.findOne({
+    where: {
+      id: eventsId,
+    },
+    include: [
+      {
+        model: User,
+        attributes: ["fcmToken", "fullName"],
+      },
+    ],
+  });
+  let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
+  const token = findUser.user.fcmToken;
+  const name = findUser.user.fullName;
+  let messages = {
+    to: token,
+    notification: {
+      title: "Thank you for helping " + name,
+      body: "Congratulations you get 100 points",
+      sound: "default",
+      click_action: "FCM_PLUGIN_ACTIVITY",
+      icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+    },
+  };
+  fcm.send(messages, (err, response) => {
+    if (err) {
+      next(err);
+    } else {
+      return res.status(200).send({
+        status: true,
+        message: "Successfully finished event!",
+        response: response,
+      });
+    }
+  });
 };
 
 export const cancelEvent = async (req, res) => {
-  try {
-    const eventsId = req.params.eventId;
-    const events = await Event.update(
-      {
-        status: "canceled",
-      },
-      {
-        where: {
-          id: eventsId,
-        },
-      }
-    );
-    const findUser = await Event.findOne({
+  const eventsId = req.params.eventId;
+  const events = await Event.update(
+    {
+      status: "canceled",
+    },
+    {
       where: {
         id: eventsId,
       },
-      include: [
-        {
-          model: User,
-          attributes: ["fcmToken", "fullName"],
-        },
-      ],
-    });
-    let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
-    const token = findUser.user.fcmToken;
-    const name = findUser.user.fullName;
-    let messages = {
-      to: token,
-      notification: {
-        title: name + " has canceled this event",
-        body: "Thank you for your awareness",
-        sound: "default",
-        click_action: "FCM_PLUGIN_ACTIVITY",
-        icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+    }
+  );
+  const findUser = await Event.findOne({
+    where: {
+      id: eventsId,
+    },
+    include: [
+      {
+        model: User,
+        attributes: ["fcmToken", "fullName"],
       },
-    };
-    fcm.send(messages, (err, response) => {
-      if (err) {
-        next(err);
-      } else {
-        return res.status(200).send({
-          status: true,
-          message: "Successfully Created!",
-          data: findUser,
-          response: response,
-        });
-      }
-    });
-  } catch (error) {
-    return res.status(500).send({
-      success: false,
-      message: error,
-    });
-  }
+    ],
+  });
+  let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
+  const token = findUser.user.fcmToken;
+  const name = findUser.user.fullName;
+  let messages = {
+    to: token,
+    notification: {
+      title: name + " has canceled this event",
+      body: "Thank you for your awareness",
+      sound: "default",
+      click_action: "FCM_PLUGIN_ACTIVITY",
+      icon: "https://res.cloudinary.com/damocpbv0/image/upload/v1670417144/128_htgmsz.png",
+    },
+  };
+  fcm.send(messages, (err, response) => {
+    if (err) {
+      next(err);
+    } else {
+      return res.status(200).send({
+        status: true,
+        message: "Successfully canceled event",
+        response: response,
+      });
+    }
+  });
 };
