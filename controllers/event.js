@@ -143,7 +143,7 @@ export const getEvent = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
     });
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "success",
       data: events,
@@ -243,7 +243,7 @@ export const getEventById = async (req, res) => {
         message: "Not Found",
       });
     }
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "success",
       data: events,
