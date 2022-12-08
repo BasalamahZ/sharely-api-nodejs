@@ -108,7 +108,6 @@ export const subsFirebase = async (req, res) => {
 
 export const getEvent = async (req, res) => {
   try {
-    const loginUser = req.user;
     const events = await Event.findAll({
       where: {
         [Op.and]: [
@@ -143,13 +142,13 @@ export const getEvent = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
     });
-    res.status(200).json({
+    return res.status(200).send({
       success: true,
       message: "success",
       data: events,
     });
   } catch (error) {
-    console.log(error);
+    return console.log(error);
   }
 };
 
@@ -243,13 +242,13 @@ export const getEventById = async (req, res) => {
         message: "Not Found",
       });
     }
-    res.status(200).json({
+    return res.status(200).send({
       success: true,
       message: "success",
       data: events,
     });
   } catch (error) {
-    console.log(error);
+    return console.log(error);
   }
 };
 
@@ -290,14 +289,22 @@ export const finishedEvent = async (req, res) => {
         model: User,
         attributes: ["fcmToken", "fullName"],
       },
+      {
+        model: Helper,
+        include: "user"
+      },
     ],
   });
   let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
-  const token = findUser.user.fcmToken;
   const name = findUser.user.fullName;
+  const names = findUser.helpers[0].user.fcmToken;
+  console.log("name",name);
+  console.log("names",names);
   let messages = {
-    to: token,
+    to: names,
+    collapse_key: "new_messages",
     notification: {
+      tag: "new_messages",
       title: "Thank you for helping " + name,
       body: "Congratulations you get 100 points",
       sound: "default",
@@ -312,6 +319,7 @@ export const finishedEvent = async (req, res) => {
       return res.status(200).send({
         status: true,
         message: "Successfully finished event!",
+        data: findUser,
         response: response,
       });
     }
@@ -339,14 +347,22 @@ export const cancelEvent = async (req, res) => {
         model: User,
         attributes: ["fcmToken", "fullName"],
       },
+      {
+        model: Helper,
+        include: "user"
+      },
     ],
   });
   let fcm = new FCM(process.env.FIREBASE_SERVER_KEY);
-  const token = findUser.user.fcmToken;
   const name = findUser.user.fullName;
+  const names = findUser.helpers[0].user.fcmToken;
+  console.log("name",name);
+  console.log("names",names);
   let messages = {
-    to: token,
+    to: names,
+    collapse_key: "new_messages",
     notification: {
+      tag: "new_messages",
       title: name + " has canceled this event",
       body: "Thank you for your awareness",
       sound: "default",
@@ -361,6 +377,7 @@ export const cancelEvent = async (req, res) => {
       return res.status(200).send({
         status: true,
         message: "Successfully canceled event",
+        data: findUser,
         response: response,
       });
     }

@@ -51,7 +51,9 @@ export const createHelper = async (req, res) => {
     const token = findUser.user.fcmToken;
     let messages = {
       to: token,
+      collapse_key: "new_messages",
       notification: {
+        tag: "new_messages",
         title: "Someone is going to help you",
         body: message,
         sound: "default",
